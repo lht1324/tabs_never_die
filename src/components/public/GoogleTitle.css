@@ -1,0 +1,29 @@
+@import url('https://fonts.cdnfonts.com/css/catull');
+
+span {
+    font-family: 'Catull', sans-serif;
+}
+
+.google_title_letter_1 {
+    color: #4285F4;
+}
+
+.google_title_letter_2 {
+    color: #EA4335;
+}
+
+.google_title_letter_3 {
+    color: #FBBC05;
+}
+
+.google_title_letter_4 {
+    color: #4285F4;
+}
+
+.google_title_letter_5 {
+    color: #34A853;
+}
+
+.google_title_letter_6 {
+    color: #EA4335;
+}

@@ -1,0 +1,15 @@
+.main_page_wrapper {
+    padding: 24px;
+}
+
+.main_page_title {
+    font-size: 48px;
+}
+
+.main_page_description_container {
+    font-size: 18px;
+}
+
+p {
+    padding: 6px 0;
+}
