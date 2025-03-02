@@ -1,35 +1,37 @@
 {
-  "manifest_version": 3,
-  "name": "Disable Close Other Tabs",
-  "short_name": "DisableCOT",
-  "version": "0.1",
-  "description": "Title.",
-  "icons": {
-    "16": "favicon.ico",
-    "48": "logo192.png",
-    "128": "logo512.png"
-  },
-  "action": {
-    "default_popup": "index.html",
-    "default_icon": {
-      "16": "favicon.ico",
-      "32": "favicon.ico",
-      "48": "logo192.png",
-      "128": "logo512.png"
-    }
-  },
-  "permissions": [
-    "activeTab",
-    "contextMenus"
-  ],
-  "host_permissions": ["<all_urls>"],
-  "background": {
-    "service_worker": "background.js"
-  },
-  "content_scripts": [
-    {
-      "matches": ["https://*/*", "http://*/*"],
-      "js": ["./content.js"]
-    }
-  ]
+    "manifest_version": 3,
+    "name": "Tabs Never Die",
+    "short_name": "TabSaver",
+    "version": "0.1",
+    "description": "Title.",
+    "icons": {
+        "16": "favicon.ico",
+        "48": "logo192.png",
+        "128": "logo512.png"
+    },
+    "action": {
+        "default_popup": "index.html",
+        "default_icon": {
+            "16": "favicon.ico",
+            "32": "favicon.ico",
+            "48": "logo192.png",
+            "128": "logo512.png"
+        }
+    },
+    "permissions": [
+        "activeTab",
+        "storage",
+        "alarms"
+    ],
+    "host_permissions": ["<all_urls>"],
+    "background": {
+        "service_worker": "background.js",
+        "type": "module"
+    },
+    "content_scripts": [
+        {
+            "matches": ["https://*/*", "http://*/*"],
+            "js": ["./content.js"]
+        }
+    ]
 }

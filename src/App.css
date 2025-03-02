@@ -1,5 +1,10 @@
+@import url("https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css");
+
 .App {
-  width: 800px;
-  height: 600px;
-  border: 1px solid black;
+    min-width: 480px;
+    min-height: 270px;
+}
+
+h1, h2, h3, h4, h5, h6, p, span, div {
+    cursor: default;
 }
