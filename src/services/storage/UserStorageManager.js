@@ -30,11 +30,60 @@ export default class UserStorageManager {
         this.storage = isFreemium ? new FreeStorage() : null;
     }
 
-    async saveUserTabList(tabList) {
-        return this.storage?.saveUserTabList(tabList);
+    async putUserTabData(currentTabList) {
+        // group Map 형태로 가져온 뒤 groupId로 가져올 수 있도록 하기
+        // 가능하면 group title 넣어주고 그걸로 묶어주기
+        const mappedTabList = currentTabList.map((tab, index) => {
+            return {
+                absoluteIndex: index + 1,
+                faviconUrl: tab.favIconUrl,
+                groupId: tab.groupId, // not -1 -> has group
+                windowIndex: tab.index,
+                lastAccessed: tab.lastAccessed,
+                pinned: tab.pinned,
+                title: tab.title,
+                url: tab.url,
+                windowId: tab.windowId,
+            }
+        });
+
+        mappedTabList.sort((a, b) => a.absoluteIndex - b.absoluteIndex)
+
+        const groupedByWindowTabList = [];
+
+        mappedTabList.forEach((tab, index) => {
+            if (groupedByWindowTabList.length === 0 || (index > 0 && mappedTabList[index - 1].windowId !== tab.windowId))
+                groupedByWindowTabList.push([]);
+
+            groupedByWindowTabList[groupedByWindowTabList.length - 1].push(tab);
+        })
+
+        /**
+         * tab에 windowId라는 항목 존재함
+         * 이건 윈도우 열 때마다 달라지는 거라서 이걸 저장하긴 좀 그렇고 같은 윈도우끼리 그룹화하는 방식으로 사용하자
+         * 인덱스는 0번부터 n번까지 가면서 윈도우까지 가니 windowId로 다른 윈도우를 구분해서 윈도우끼리 묶으면 될 듯 하다
+         * 이 와중에 그룹도 추가해야 하노 ㅅㅂ ㅋㅋㅋㅋㅋ
+         *
+         * 오케이 정함
+         * 1. windowId로 1차 그룹화
+         * 2. window 내부에선 index를 따라가지만 group title 부여해서 복구할 시 groupTitle로 묶어주기
+         * 3. [윈도우][인덱스] 이차원 배열로 갈까, 아니면 그룹만 따로 구분을 해야할까?
+         * 따로 구분이 맞을 것 같다. 그룹도 결국 인덱스를 따라가고 타입의 일종이라 봐야 한다.
+         *
+         * 절차
+         * 1. 이차원 배열을 생성한다.
+         * 2. 탭 리스트로 for문을 돌리면서 배열의 [0][0]부터 계속 넣는다.
+         * 3. previousWindowId 등의 변수를 생성해 체크하다가, windowId가 달라지는 순간 for문에서 사용되는 windowIndex를 1 증가시키고 새로 넣는다.
+         * 4. 반복한다.
+         *
+         * - 그룹은 따로
+         * - windowId는 for문 내부에서 사용할 정도면 된다.
+         */
+
+        await this.storage?.putUserTabData(groupedByWindowTabList);
     }
 
-    async getUserTabList() {
-        return this.storage?.getUserTabList();
+    async getUserTabData() {
+        return await this.storage?.getUserTabData();
     }
 }

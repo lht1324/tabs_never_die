@@ -3,55 +3,61 @@
 import "./MainPage.css"
 import {useCallback, useEffect, useState} from "react";
 import Spacer from "../public/Spacer";
-// import { sendMessage } from "../../../public/utils/chromeAPI.js";
-import userStorageManager from "@/services/storage/UserStorageManager.js"
-import {sendMessage } from "/src/utils/chromeAPI.js";
-// import GoogleTitle from "../public/GoogleTitle";
-// import BeEvilText from "../public/BeEvilText";
+import UserStorageManager from "@/services/storage/UserStorageManager.js"
+import {sendMessage} from "/src/utils/chromeAPI.js";
+import {getTimeAgoText} from "../../utils/utils.js";
+
+const userStorageManager = new UserStorageManager(true);
 
 function MainPage() {
-    /**
-     * last save date
-     * currenet tab count
-     * 
-     */
     const [savedTabList, setSavedTabList] = useState([]);
+    const [tabCount, setTabCount] = useState(0);
 
-    const handleSaveTabs = useCallback(() => {
-        sendMessage("saveTabs");
+    const [lastSaveDateText, setLastSaveDateText] = useState("");
+
+    const updateUserTabSaveData = useCallback(async () => {
+        const {
+            tabList,
+            lastSaveDate
+        } = await userStorageManager.getUserTabData();
+
+        setSavedTabList(tabList);
+        setLastSaveDateText(getTimeAgoText(lastSaveDate));
+    }, []);
+
+    const handleSaveTabs = useCallback(async () => {
+        sendMessage(
+            "putTabData",
+            () => {
+                updateUserTabSaveData();
+            }
+        );
     }, [])
-    const handleGetTabs = useCallback(() => {
+    const handleGetTabs = useCallback(async () => {
         console.log("useCallback getTabs")
-        sendMessage("getTabs");
+        
+        await updateUserTabSaveData();
+    }, [updateUserTabSaveData]);
+
+    useEffect(() => {
+        updateUserTabSaveData().then();
     }, [])
 
     useEffect(() => {
-        const getTabList = async () => {
-            await userStorageManager.getUserTabList();
+        if (savedTabList.length > 0) {
+            setTabCount(savedTabList.reduce((acc, windowTabList) => acc + windowTabList.length, 0));
         }
-
-        const refreshTabList = async () => {
-            const tabList = await getTabList();
-
-            setSavedTabList(tabList);
-        }
-
-        refreshTabList();
-    }, [])
+    }, [savedTabList])
 
     return (
         <div className="main_page_wrapper">
             <h2 className="main_page_title">Tabs Never Die</h2>
             <Spacer height="12px" />
             <div className="main_page_description_container">
-                <p>현재 저장된 탭은 {savedTabList.length}개입니다.</p>
+                <p>현재 저장된 탭은 {tabCount}개입니다.</p>
+                <p>마지막 저장: {lastSaveDateText}</p>
                 <button onClick={handleSaveTabs}>Save Tabs</button>
                 <button onClick={handleGetTabs}>Get Tabs</button>
-                {/* <p>I lost over 200 tabs by this damn button.</p>
-                <p>Honestly, if <GoogleTitle /> put Enable option, I don&#39;t have to make this.</p>
-                <p>Nice work, <GoogleTitle />.</p>
-                <p>You make one of the laziest guy in the world to start making this.</p>
-                <p>I&#39;m gladly gonna <BeEvilText />.</p> */}
 
             </div>
         </div>
