@@ -1,19 +1,55 @@
-import {useCallback, useState} from "react";
+import {useCallback, useEffect, useState} from "react";
 import {Divider} from "../public/Divider.jsx";
 import Spacer from "../public/Spacer.jsx";
+import {sendMessage} from "../../utils/chromeAPI.js";
 
 export default function SettingPage() {
-    const [isDarkMode, setDarkMode] = useState(false);
-    const [autoSaveIntervalMinutes, setAutoSaveIntervalMinutes] = useState("30");
+    const [isInitialized, setIsInitialized] = useState(false);
 
+    const [preferenceData, setPreferenceData] = useState({
+        isDarkMode: false,
+        autoSaveIntervalMinutes: "30"
+    });
+
+    const onChangeIsDarkMode = useCallback((e) => {
+        setPreferenceData({ ...preferenceData, isDarkMode: e.target.checked });
+    }, [preferenceData]);
     const onChangeAutoSaveIntervalMinutes = useCallback((e) => {
-        setAutoSaveIntervalMinutes(e.target.value);
-    }, [])
+        setPreferenceData({ ...preferenceData, autoSaveIntervalMinutes: e.target.value });
+    }, [preferenceData])
+
+    useEffect(() => {
+        sendMessage(
+            "getUserPreference",
+            (preferenceData) => {
+                setPreferenceData(preferenceData);
+                setIsInitialized(true);
+            },
+            () => {
+
+            }
+        )
+    }, []);
+
+    useEffect(() => {
+        if (isInitialized) {
+            sendMessage(
+                "putUserPreference",
+                () => {
+
+                },
+                () => {
+
+                },
+                preferenceData,
+            )
+        }
+    }, [isInitialized, preferenceData])
 
     return (
         <div>
             <h2>자동 저장 주기</h2>
-            <select onChange={onChangeAutoSaveIntervalMinutes} value={autoSaveIntervalMinutes}>
+            <select onChange={onChangeAutoSaveIntervalMinutes} value={preferenceData.autoSaveIntervalMinutes}>
                 <option value="1">1분</option>
                 <option value="5">5분</option>
                 <option value="10">10분</option>
@@ -29,7 +65,7 @@ export default function SettingPage() {
             <Divider/>
             <Spacer height="2px"/>
             <h2>다크 모드</h2>
-            <input type="checkbox" checked={isDarkMode} onChange={() => setDarkMode(!isDarkMode)}/>
+            <input type="checkbox" checked={preferenceData.isDarkMode} onChange={onChangeIsDarkMode}/>
         </div>
     )
 }

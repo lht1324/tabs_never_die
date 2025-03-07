@@ -24,11 +24,17 @@
 
 // 플랜에 따라 저장소 객체 생성
 import FreeStorage from "./FreeStorage.js";
+import PreferenceStorage from "./PreferenceStorage.js";
 
 export default class UserStorageManager {
     constructor(isFreemium) {
         this.storage = isFreemium ? new FreeStorage() : null;
+        this.preferenceStorage = new PreferenceStorage();
     }
+
+    /**
+     * FreeStorage, PremiumStorage
+     */
 
     async putUserTabData(currentTabList) {
         // group Map 형태로 가져온 뒤 groupId로 가져올 수 있도록 하기
@@ -85,5 +91,17 @@ export default class UserStorageManager {
 
     async getUserTabData() {
         return await this.storage?.getUserTabData();
+    }
+
+    /**
+     * PreferenceStorage
+     */
+
+    async putUserPreference(preference) {
+        await this.preferenceStorage.putUserPreference(preference);
+    }
+
+    async getUserPreference() {
+        return await this.preferenceStorage.getUserPreference();
     }
 }
