@@ -12,7 +12,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
                 message: "탭 저장 완료"
             });
         })
-    } else if (message.action === "getTabs") {
+    } else if (message.action === "getTabData") {
         try {
             getTabData().then((savedTabData) => {
                 sendResponse({
