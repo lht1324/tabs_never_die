@@ -1,5 +1,8 @@
 /*global chrome*/
 
+import {useEffect} from "react";
+import {println} from "./log.js";
+
 /**
  * @param action
  * @param data
@@ -17,7 +20,22 @@ export function sendMessage(action, onSuccess, onFailure, data) {
         } else {
             onFailure
                 ? onFailure(response.message)
-                : console.log(`sendMessage(${action}) Error: ${response.message}`);
+                : println(`sendMessage(${action}) Error: ${response.message}`);
         }
     });
+}
+
+export function useChromeListener(action, callback) {
+    return useEffect(() => {
+        const messageListener = (message) => {
+            if (message.action === action) {
+                callback();
+            }
+        }
+        chrome.runtime.onMessage.addListener(messageListener)
+
+        return () => {
+            chrome.runtime.onMessage.removeListener(messageListener);
+        }
+    }, [])
 }

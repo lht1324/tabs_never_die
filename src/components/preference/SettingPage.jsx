@@ -2,56 +2,59 @@ import {useCallback, useEffect, useState} from "react";
 import {Divider} from "../public/Divider.jsx";
 import Spacer from "../public/Spacer.jsx";
 import {sendMessage} from "../../utils/chromeAPI.js";
+import {isJSONEmpty} from "../../utils/utils.js";
+import {println} from "../../utils/log.js";
 
 export default function SettingPage() {
-    const [isInitialized, setIsInitialized] = useState(false);
-
-    const [preferenceData, setPreferenceData] = useState({
-        isDarkMode: false,
-        autoSaveIntervalMinutes: "30"
-    });
+    const [preferenceData, setPreferenceData] = useState({ });
 
     const onChangeIsDarkMode = useCallback((e) => {
+        println("onChangeIsDarkMode")
         setPreferenceData({ ...preferenceData, isDarkMode: e.target.checked });
     }, [preferenceData]);
     const onChangeAutoSaveIntervalMinutes = useCallback((e) => {
+        println("onChangeAutoSaveIntervalMinutes")
         setPreferenceData({ ...preferenceData, autoSaveIntervalMinutes: e.target.value });
     }, [preferenceData])
 
     useEffect(() => {
         sendMessage(
             "getUserPreference",
-            (preferenceData) => {
-                setPreferenceData(preferenceData);
-                setIsInitialized(true);
+            (savedPreferenceData) => {
+                setPreferenceData(savedPreferenceData);
+                // if (!isJSONEmpty(savedPreferenceData)) {
+                //     setPreferenceData(savedPreferenceData);
+                // } else {
+                //     setPreferenceData(defaultPreference);
+                // }
             },
             () => {
-
+                println("useEffect1 onFailure")
             }
         )
     }, []);
 
     useEffect(() => {
-        if (isInitialized) {
+        if (!isJSONEmpty(preferenceData)) {
             sendMessage(
                 "putUserPreference",
                 () => {
-
+                    println("putUserPreference onSuccess")
                 },
                 () => {
-
+                    println("putUserPreference onFailure")
                 },
                 preferenceData,
             )
         }
-    }, [isInitialized, preferenceData])
+    }, [preferenceData])
 
     return (
-        <div>
+        !isJSONEmpty(preferenceData) && <div>
             <h2>자동 저장 주기</h2>
             <select onChange={onChangeAutoSaveIntervalMinutes} value={preferenceData.autoSaveIntervalMinutes}>
                 <option value="1">1분</option>
-                <option value="5">5분</option>
+                <option value="2">5분</option>
                 <option value="10">10분</option>
                 <option value="15">15분</option>
                 <option value="30">30분</option>

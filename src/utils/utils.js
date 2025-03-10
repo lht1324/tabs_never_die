@@ -46,3 +46,7 @@ export function getFormattedDateText(isoString, isEnglish) {
         ? `${monthText}/${dayText}/${year}, ${hourText}:${minText} ${ampmText}`
         : `${year}년 ${monthText}월 ${dayText}일 ${ampmText} ${hourText}시 ${minText}분`
 }
+
+export function isJSONEmpty(jsonObject) {
+    return !jsonObject || (jsonObject && Object.keys(jsonObject).length === 0 && jsonObject.constructor === Object);
+}

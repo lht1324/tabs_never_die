@@ -1,7 +1,7 @@
 import "./MainPage.css"
 import {useCallback, useEffect, useState} from "react";
 import Spacer from "../public/Spacer";
-import {sendMessage} from "/src/utils/chromeAPI.js";
+import {sendMessage, useChromeListener} from "/src/utils/chromeAPI.js";
 import {getFormattedDateText, getTimeAgoText} from "../../utils/utils.js";
 import Row from "../public/Row.jsx";
 import SettingButton from "./SettingButton.jsx";
@@ -26,8 +26,11 @@ export default function MainPage() {
                 } = tabData;
 
                 setSavedTabList(tabList);
-                setLastSaveDateText(getTimeAgoText(lastSaveDate, false));
-                setFormattedLastSaveDateText(getFormattedDateText(lastSaveDate, false));
+
+                if (lastSaveDate) {
+                    setLastSaveDateText(getTimeAgoText(lastSaveDate, false));
+                    setFormattedLastSaveDateText(getFormattedDateText(lastSaveDate, false));
+                }
             }
         )
     }, []);
@@ -51,12 +54,20 @@ export default function MainPage() {
     useEffect(() => {
         updateUserTabSaveData().then();
     }, [])
+    // message 받을 때마다 업데이트 치는 방식으로 바꾸면 이걸 아래쪽 훅으로 대체 가능할 것 같다
 
     useEffect(() => {
         if (savedTabList.length > 0) {
             setTabCount(savedTabList.reduce((acc, windowTabList) => acc + windowTabList.length, 0));
         }
     }, [savedTabList])
+
+    useChromeListener(
+        "tabListUpdated",
+        () => {
+            updateUserTabSaveData().then();
+        }
+    )
 
     return (
         <div className="main_page_wrapper">

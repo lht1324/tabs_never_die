@@ -1,19 +1,23 @@
 /*global chrome*/
 
 import UserStorageManager from "@/services/storage/UserStorageManager.js";
-import {handleGetUserData, handlePutUserData} from "./FreeStorageHandler.js";
+import {handleGetUserTabData, handlePutUserTabData} from "./FreeStorageHandler.js";
 import {handleGetUserPreference, handlePutUserPreference} from "./PreferenceStorageHandler.js";
+import {println} from "../utils/log.js";
 
 const userStorageManager = new UserStorageManager(true);
-// 메시지 리스너: 탭 저장 및 불러오기
+
+initializeTabSaveData().then();
+updateAutoSaveAlarm().then();
+
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     switch (message.action) {
         case "putTabData": {
-            handlePutUserData(userStorageManager, sendResponse).then();
+            handlePutUserTabData(userStorageManager, sendResponse).then();
             break;
         }
         case "getTabData": {
-            handleGetUserData(userStorageManager, sendResponse).then();
+            handleGetUserTabData(userStorageManager, sendResponse).then();
             break;
         }
         case "putUserPreference": {
@@ -25,9 +29,51 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             break;
         }
         default: {
-            console.log(`chrome.runtime.onMessage()'s action = ${message.action}`);
+            println(`chrome.runtime.onMessage()'s action = ${message.action}`);
         }
     }
 
     return true; // 비동기 응답을 위해 true 반환
 });
+
+chrome.alarms.onAlarm.addListener((alarm) => {
+    println(`alarmsOnAlarm: ${JSON.stringify(alarm)}`);
+    switch (alarm.name) {
+        case "autoSaveTabData": {
+            handlePutUserTabData(userStorageManager).then(() => {
+                chrome.runtime.sendMessage({ action: "tabListUpdated" }).then();
+            })
+            break;
+        }
+        default: {
+            println(`Alarm's name is wrong: ${alarm.name}`)
+            break;
+        }
+    }
+})
+
+chrome.storage.onChanged.addListener((changes, area) => {
+    println(`storageOnChanged: ${area}, ${JSON.stringify(changes)}`);
+    if (area === "local" && changes.userPreference && changes.userPreference.newValue) {
+        updateAutoSaveAlarm().then();
+    }
+})
+
+async function initializeTabSaveData() {
+    await handleGetUserTabData(userStorageManager, (response) => {
+        if (response.data.tabList.length === 0 && response.data.tabGroupList.length === 0) {
+            handlePutUserTabData(userStorageManager).then();
+        }
+    });
+}
+
+async function updateAutoSaveAlarm() {
+    await handleGetUserPreference(userStorageManager, (response) => {
+        const savedPreferenceData = response.data;
+        const autoSaveIntervalMinutes = savedPreferenceData.autoSaveIntervalMinutes;
+
+        chrome.alarms.clear("autoSaveTabData", () => {
+            chrome.alarms.create("autoSaveTabData", { periodInMinutes: parseInt(autoSaveIntervalMinutes) });
+        })
+    })
+}

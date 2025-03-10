@@ -36,7 +36,7 @@ export default class UserStorageManager {
      * FreeStorage, PremiumStorage
      */
 
-    async putUserTabData(currentTabList) {
+    async putUserTabData(currentTabList, currentTabGroupList) {
         // group Map 형태로 가져온 뒤 groupId로 가져올 수 있도록 하기
         // 가능하면 group title 넣어주고 그걸로 묶어주기
         const mappedTabList = currentTabList.map((tab, index) => {
@@ -52,6 +52,7 @@ export default class UserStorageManager {
                 windowId: tab.windowId,
             }
         });
+        // tabGroupList는 그대로 저장해도 될 것 같다
 
         mappedTabList.sort((a, b) => a.absoluteIndex - b.absoluteIndex)
 
@@ -86,7 +87,7 @@ export default class UserStorageManager {
          * - windowId는 for문 내부에서 사용할 정도면 된다.
          */
 
-        await this.storage?.putUserTabData(groupedByWindowTabList);
+        await this.storage?.putUserTabData(groupedByWindowTabList, currentTabGroupList);
     }
 
     async getUserTabData() {
