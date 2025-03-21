@@ -54,6 +54,27 @@ export default class UserStorageManager {
         });
         // tabGroupList는 그대로 저장해도 될 것 같다
 
+        /*
+         {
+             absoluteIndex: Number,
+             faviconUrl: String,
+             groupId: Number,
+             windowIndex: Number,
+             lastAccessed: String (Date),
+             pinned: Boolean,
+             title: String,
+             url: String,
+             windowId: Number,
+         }
+         {
+             collapsed: Boolean,
+             color: String,
+             id: Number,
+             title: String,
+             windowId: Number
+         }
+         */
+
         mappedTabList.sort((a, b) => a.absoluteIndex - b.absoluteIndex)
 
         const groupedByWindowTabList = [];
@@ -91,7 +112,32 @@ export default class UserStorageManager {
     }
 
     async getUserTabData() {
-        return await this.storage?.getUserTabData();
+        const {
+            tabList,
+            tabGroupList,
+            lastSaveDate
+        } = await this.storage?.getUserTabData();
+
+        const groupMap = { };
+        tabGroupList.forEach((group) => {
+            groupMap[group.id] = group;
+        });
+
+        const mappedTabDataList = tabList.map((tabListByWindow) => {
+            return tabListByWindow.map((tab) => {
+                return {
+                    ...tab,
+                    // group: (tab.groupId != null && groupMap[tab.groupId]) ? groupMap[tab.groupId] : null,
+                    group: (tab.groupId !== -1) ? groupMap[tab.groupId] : null,
+                }
+            })
+        })
+
+        return {
+            tabDataList: mappedTabDataList,
+            lastSaveDate,
+        };
+        // return await this.storage?.getUserTabData();
     }
 
     /**

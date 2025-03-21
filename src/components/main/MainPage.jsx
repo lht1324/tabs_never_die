@@ -10,7 +10,7 @@ import {useNavigate} from "react-router-dom";
 export default function MainPage() {
     const navigate = useNavigate();
     
-    const [savedTabList, setSavedTabList] = useState([]);
+    const [savedTabDataList, setSavedTabDataList] = useState([]);
     const [tabCount, setTabCount] = useState(0);
 
     const [lastSaveDateText, setLastSaveDateText] = useState("");
@@ -21,11 +21,11 @@ export default function MainPage() {
             "getTabData",
             (tabData) => {
                 const {
-                    tabList,
+                    tabDataList,
                     lastSaveDate
                 } = tabData;
 
-                setSavedTabList(tabList);
+                setSavedTabDataList(tabDataList);
 
                 if (lastSaveDate) {
                     setLastSaveDateText(getTimeAgoText(lastSaveDate, false));
@@ -43,9 +43,17 @@ export default function MainPage() {
             }
         );
     }, [])
-    const handleGetTabs = useCallback(async () => {
-        await updateUserTabSaveData();
-    }, [updateUserTabSaveData]);
+    // const handleGetTabs = useCallback(async () => {
+    //     await updateUserTabSaveData();
+    // }, [updateUserTabSaveData]);
+    const handleRestoreTabs = useCallback(() => {
+        sendMessage(
+            "restoreTabs",
+            () => {
+                console.log("restore success");
+            }
+        )
+    }, []);
     
     const handleClickSetting = useCallback(() => {
         navigate("/setting")
@@ -57,10 +65,10 @@ export default function MainPage() {
     // message 받을 때마다 업데이트 치는 방식으로 바꾸면 이걸 아래쪽 훅으로 대체 가능할 것 같다
 
     useEffect(() => {
-        if (savedTabList.length > 0) {
-            setTabCount(savedTabList.reduce((acc, windowTabList) => acc + windowTabList.length, 0));
+        if (savedTabDataList.length > 0) {
+            setTabCount(savedTabDataList.reduce((acc, windowTabList) => acc + windowTabList.length, 0));
         }
-    }, [savedTabList])
+    }, [savedTabDataList])
 
     useChromeListener(
         "tabListUpdated",
@@ -84,8 +92,8 @@ export default function MainPage() {
                 <p>현재 저장된 탭은 {tabCount}개입니다.</p>
                 <p>마지막 저장: {lastSaveDateText} ({formattedLastSaveDateText})</p>
                 <button onClick={handleSaveTabs}>Save Tabs</button>
-                <button onClick={handleGetTabs}>Get Tabs</button>
-
+                {/*<button onClick={handleGetTabs}>Get Tabs</button>*/}
+                <button onClick={handleRestoreTabs}>Restore Tabs</button>
             </div>
         </div>
     )

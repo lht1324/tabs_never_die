@@ -4,6 +4,7 @@ import UserStorageManager from "@/services/storage/UserStorageManager.js";
 import {handleGetUserTabData, handlePutUserTabData} from "./FreeStorageHandler.js";
 import {handleGetUserPreference, handlePutUserPreference} from "./PreferenceStorageHandler.js";
 import {println} from "../utils/log.js";
+import {restoreTabs} from "./ChromeAPIHandler.js";
 
 const userStorageManager = new UserStorageManager(true);
 
@@ -26,6 +27,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         }
         case "getUserPreference": {
             handleGetUserPreference(userStorageManager, sendResponse).then();
+            break;
+        }
+        case "restoreTabs": {
+            restoreTabs(userStorageManager, sendResponse).then();
             break;
         }
         default: {
@@ -61,7 +66,7 @@ chrome.storage.onChanged.addListener((changes, area) => {
 
 async function initializeTabSaveData() {
     await handleGetUserTabData(userStorageManager, (response) => {
-        if (response.data.tabList.length === 0 && response.data.tabGroupList.length === 0) {
+        if (response.data && response.data.tabDataList.length === 0) {
             handlePutUserTabData(userStorageManager).then();
         }
     });
